@@ -11,7 +11,7 @@
 // Add preview action to sleceted post types
 add_filter( 'posts_results', 'wp_public_previews', null, 2 );
 function wp_public_previews( $posts, &$query ) {
-
+	
 
 	// Get post type 
 	$type_options = array("post", "page");
@@ -66,19 +66,25 @@ function wp_public_preview_metabox($post) {
     $status = get_post_status($post->ID);
     $post_status_obj = get_post_status_object( $status );
 
-
 	// If post is not published show metabox
     if ( $status != 'publish' ) {
 		// Add metabox
-		add_meta_box('preview_output_code', 'Public Preview', 'preview_output_code', 'post', 'side', 'default');
+		add_meta_box('preview_output_code', 'Public Preview', 'public_preview_markup', array('post', 'page'), 'side', 'default');
 		
 	}
 
 	// Create content and output for metabox
-	function preview_output_code($post) {
+	function public_preview_markup($post) {
+		echo '<p><label for="publicpreview"><input type="checkbox" name="_wp_pp_enabled" id="publicpreview" value="true"> Enable Public Preview</label></p>';
 
 		echo '<input style="width:100%" type="text" value="' . get_bloginfo('url') . '/?p=' . $post->ID  . '&_publicpreview=true" />';
-		echo '<p><i>Use this link to provide a public preview link. This will allow someone to view "Draft" status posts without a login.</i></p>';
+		echo '<p><i>If enabled, use this link to provide a public preview link. This will allow someone to view "Draft" status posts without a login.</i></p>';
+	}
+
+	// Save All Metadata
+	add_action("save_post", "public_preview_meta_save", 10, 3);
+	function public_preview_meta_save($post_id, $post, $update) {
+
 	}
 }
 ?>
