@@ -8,24 +8,29 @@
 * Author URI: http://russellramey.me/
 */
 
+
 // Add preview action to sleceted post types
 add_filter( 'posts_results', 'wp_public_previews', null, 2 );
 function wp_public_previews( $posts, &$query ) {
-	
 
-	// Get post type 
-	$type_options = array("post", "page");
-	$type = get_post_type( $posts[0] );
-
-	// Get post status & set status object
-    $status = get_post_status( $posts[0] );
-    $post_status_obj = get_post_status_object( $status );
-
-
-	// If more than 1 post is returned, return normally
+	// If 0 or more than 1 post is returned, return normally
+	// else get post attributes as variables
     if ( sizeof($posts) != 1 ) {
+
     	return $posts;
-    } 
+
+    } else {
+
+		// Get post type 
+		$type_options = array("post", "page");
+		$type = get_post_type( $posts[0] );
+
+		// Get post status & set status object
+		$status = get_post_status( $posts[0] );
+		$post_status_obj = get_post_status_object( $status );
+	
+	}
+
 
 	// If post status is public, return as normal as it is public
     if ( $post_status_obj->public ) {
