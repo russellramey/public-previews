@@ -13,13 +13,15 @@
 add_filter( 'posts_results', 'wp_public_previews', null, 2 );
 function wp_public_previews( $posts, &$query ) {
 
-	// If 0 or more than 1 post is returned, return normally
+	// If more than 1 post is returned, return normally
 	// else get post attributes as variables
     if ( sizeof($posts) != 1 ) {
 
+    	// Return the posts results
     	return $posts;
 
     } else {
+
 
 		// Get post type 
 		$type_options = array("post", "page");
@@ -28,32 +30,52 @@ function wp_public_previews( $posts, &$query ) {
 		// Get post status & set status object
 		$status = get_post_status( $posts[0] );
 		$post_status_obj = get_post_status_object( $status );
-	
-	}
 
+		// Get post meta
+		// Get post Preview Key
+	    $current_preview_key = get_post_meta($posts[0]->ID, '_publicpreview_key', true);
+	    // Get post Preview Toggle
+	    $current_preview_status = get_post_meta($posts[0]->ID, '_publicpreview_toggle', true);
+	    
+	    // If post does not have a current key
+	    if($current_preview_key) {
+	    	$preview_key = $current_preview_key;
+	    } else {
+	    	$preview_key = null;
+	    }
+
+	}
 
 	// If post status is public, return as normal as it is public
     if ( $post_status_obj->public ) {
+
+    	// Return post normally
     	return $posts;
+
     }
 
     // If post is draft, and ?_publicpreview=true
-    if (!isset( $_GET['_publicpreview'] ) || $_GET['_publicpreview'] != 'true' ) {
-		 return $posts;
-    }
+    if (!isset( $_GET['_publicpreview'] ) || $_GET['_publicpreview'] != $preview_key  ) {
 
-	// Store main post query
-    $query->_public_preview_cache = $posts; /* stash away */
+    	// Return post normally
+		return $posts;
 
-    // If correct post type
-    if(in_array($type, $type_options)){
+    } else {
 
-		// Remove filter
-	    add_filter( 'the_posts', 'wp_public_previews_active', null, 2 );
-		function wp_public_previews_active( $posts, &$query ) {
-		    /* do only once */
-		    remove_filter( 'the_posts', 'wp_public_previews_active', null, 2 );
-		    return $query->_public_preview_cache;
+		// Store main post query
+	    $query->_public_preview_cache = $posts; /* stash away */
+
+	    // If correct post type
+	    if(in_array($type, $type_options) && $current_preview_status != 'false'){
+
+			// Remove filter
+		    add_filter( 'the_posts', 'wp_public_previews_active', null, 2 );
+			function wp_public_previews_active( $posts, &$query ) {
+			    /* do only once */
+			    remove_filter( 'the_posts', 'wp_public_previews_active', null, 2 );
+			    return $query->_public_preview_cache;
+			}
+
 		}
 
 	}
@@ -90,10 +112,10 @@ function wp_public_preview_metabox($post) {
 	function public_preview_markup($post) {
 
 		// Get post Preview Key
-	    $current_key = get_post_meta($post->ID, '_publicpreview_key', true);
+	    $current_preview_key = get_post_meta($post->ID, '_publicpreview_key', true);
 	    // If post does not have a current key
-	    if($current_key) {
-	    	$preview_key = $current_key;
+	    if($current_preview_key) {
+	    	$preview_key = $current_preview_key;
 	    } else {
 	    	$preview_key = public_preview_key_generator();
 	    }
