@@ -32,9 +32,9 @@ function wp_public_previews( $posts, &$query ) {
 		$post_status_obj = get_post_status_object( $status );
 
 		// Get post meta
-		// Get post Preview Key
+		// Preview Key
 	    $current_preview_key = get_post_meta($posts[0]->ID, '_publicpreview_key', true);
-	    // Get post Preview Toggle
+	    // Preview Toggle
 	    $current_preview_status = get_post_meta($posts[0]->ID, '_publicpreview_toggle', true);
 	    
 	    // If post does not have a current key
@@ -104,15 +104,25 @@ function wp_public_preview_metabox($post) {
 
 	// If post is not published show metabox
     if ( $status != 'publish' ) {
-		// Add metabox
+
+		// Add / Show metabox with preview details
 		add_meta_box('wp_public_preview', 'Public Preview', 'public_preview_markup', array('post', 'page'), 'side', 'default');
+
+	} else {
+
+		// If published, delete preview meta data
+        delete_post_meta($post->ID, '_publicpreview_key' );
+        delete_post_meta($post->ID, '_publicpreview_toggle');
+        
 	}
 
 	// Create content and output for metabox
 	function public_preview_markup($post) {
 
-		// Get post Preview Key
+		// Get post Preview Meta
 	    $current_preview_key = get_post_meta($post->ID, '_publicpreview_key', true);
+	    $current_preview_status = get_post_meta($post->ID, '_publicpreview_toggle', true);
+
 	    // If post does not have a current key
 	    if($current_preview_key) {
 	    	$preview_key = $current_preview_key;
@@ -123,8 +133,8 @@ function wp_public_preview_metabox($post) {
 	    // Echo out all markup
 		echo '<p><label for="publicpreview"><input type="checkbox" name="publicpreview_toggle" id="publicpreview" value="true"> Enable Public Preview</label></p>';
 		echo '<input type="hidden" name="publicpreview_key" value="' . $preview_key . '">';
-		echo '<input style="width:100%" type="text" value="' . get_bloginfo('url') . '/?p=' . $post->ID  . '&_publicpreview=' . $preview_key . '" />';
-		echo '<p><i>If enabled, use this link to provide a public preview link. This will allow someone to view "Draft" status posts without a login.</i></p>';
+		echo '<input style="width:100%; padding:10px;" type="text" value="' . get_bloginfo('url') . '/?p=' . $post->ID  . '&_publicpreview=' . $preview_key . '" />';
+		echo '<p><i>If enabled, use this link to provide a public preview link. This will allow someone to view "Draft" status posts without a login or account.</i></p>';
 	}
 
 }
@@ -146,17 +156,30 @@ function public_preview_meta_save($post_id, $post, $update) {
         update_post_meta($post_id, '_publicpreview_key', $_POST['publicpreview_key'] );
         update_post_meta($post_id, '_publicpreview_toggle', 'true');
 	} else {
+
 		// Update meta value in DB
+		update_post_meta($post_id, '_publicpreview_key', null );
         update_post_meta($post_id, '_publicpreview_toggle', 'false');
 	}
 
 }
 
+
+
+
+
+
+
+
 // Random key generator
 function public_preview_key_generator($length = 16) {
+
+	// Vars
     $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     $charactersLength = strlen($characters);
     $randomString = '';
+
+    // Create key
     for ($i = 0; $i < $length; $i++) {
         $randomString .= $characters[rand(0, $charactersLength - 1)];
     }
