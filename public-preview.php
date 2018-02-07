@@ -20,8 +20,8 @@ function wp_public_previews( $posts, &$query ) {
     	// Return the posts results
     	return $posts;
 
+    // If single, we want it
     } else {
-
 
 		// Get post type 
 		$type_options = array("post", "page");
@@ -130,8 +130,15 @@ function wp_public_preview_metabox($post) {
 	    	$preview_key = public_preview_key_generator();
 	    }
 
+	    // If preview is enabled
+	    if($current_preview_status != 'false'){
+	    	$checked = 'checked';
+	    } else {
+	    	$checked = '';
+	    }
+
 	    // Echo out all markup
-		echo '<p><label for="publicpreview"><input type="checkbox" name="publicpreview_toggle" id="publicpreview" value="true"> Enable Public Preview</label></p>';
+		echo '<p><label for="publicpreview"><input type="checkbox" name="publicpreview_toggle" id="publicpreview" value="true" ' . $checked . '> Enable Public Preview</label></p>';
 		echo '<input type="hidden" name="publicpreview_key" value="' . $preview_key . '">';
 		echo '<input style="width:100%; padding:10px;" type="text" value="' . get_bloginfo('url') . '/?p=' . $post->ID  . '&_publicpreview=' . $preview_key . '" />';
 		echo '<p><i>If enabled, use this link to provide a public preview link. This will allow someone to view "Draft" status posts without a login or account.</i></p>';
@@ -147,14 +154,34 @@ function wp_public_preview_metabox($post) {
 
 
 // Save All Metadata
-add_action("save_post", "public_preview_meta_save", 10, 3);
-function public_preview_meta_save($post_id, $post, $update) {
+add_action("save_post", "public_preview_meta_save", 10, 2);
+function public_preview_meta_save($post_id) {
+	
+	if (!isset($_POST["meta-box-nonce"]) || !wp_verify_nonce($_POST["meta-box-nonce"], basename(__FILE__))) {
+		//Bail!
+		return $post_id;
+	}
+	// Check if WP is autosaving
+	if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) {
+		//Bail!
+		return $post_id;
+	}
+	// Check if WP is doing AJAX
+	if( defined('DOING_AJAX') && DOING_AJAX ) {
+		//Bail!
+		return $post_id;
+	}
+
 	//Check to make sure the name of our field that is going to be saved is there. 
 	if( isset($_POST['publicpreview_toggle']) ) {
 
+		// Sanitize key for db input
+		$safe_preview_key = sanitize_text_field( $_POST['publicpreview_key'] );
+
 		// Update meta value in DB
-        update_post_meta($post_id, '_publicpreview_key', $_POST['publicpreview_key'] );
+        update_post_meta($post_id, '_publicpreview_key', $safe_preview_key );
         update_post_meta($post_id, '_publicpreview_toggle', 'true');
+
 	} else {
 
 		// Update meta value in DB
