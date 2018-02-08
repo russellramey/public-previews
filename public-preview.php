@@ -118,6 +118,8 @@ function wp_public_preview_metabox($post) {
 
 	// Create content and output for metabox
 	function public_preview_markup($post) {
+		// WP Nonce Hook (required)
+        wp_nonce_field(basename(__FILE__), "_publicpreview-nonce");
 
 		// Get post Preview Meta
 	    $current_preview_key = get_post_meta($post->ID, '_publicpreview_key', true);
@@ -156,10 +158,10 @@ function wp_public_preview_metabox($post) {
 // Save All Metadata
 add_action("save_post", "public_preview_meta_save", 10, 2);
 function public_preview_meta_save($post_id) {
-	
-	if (!isset($_POST["meta-box-nonce"]) || !wp_verify_nonce($_POST["meta-box-nonce"], basename(__FILE__))) {
-		//Bail!
-		return $post_id;
+
+	// Check WP Nonce (required)
+	if (!isset($_POST["_publicpreview-nonce"]) || !wp_verify_nonce($_POST["_publicpreview-nonce"], basename(__FILE__))) {
+        return $post_id;
 	}
 	// Check if WP is autosaving
 	if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) {
