@@ -52,8 +52,8 @@ function wp_public_preview_metabox($post) {
 	    // Echo out all markup
 		echo '<p><label for="publicpreview"><input type="checkbox" name="publicpreview_toggle" id="publicpreview" value="true" ' . $checked . '> Enable Public Preview</label></p>';
 		echo '<input type="hidden" name="publicpreview_key" value="' . $preview_key . '">';
-		echo '<input style="width:100%; padding:10px;" type="text" value="' . get_bloginfo('url') . '/?p=' . $post->ID  . '&_publicpreview=' . $preview_key . '" />';
-		echo '<p><i>If enabled, use this link to provide a public preview link. This will allow someone to view "Draft" status posts without a login or account.</i></p>';
+		echo '<input style="width:100%; padding:.5rem 1rem;" type="text" value="' . get_bloginfo('url') . '/?p=' . $post->ID  . '&_publicpreview=' . $preview_key . '" />';
+		echo '<p style="margin-top:.5rem"><i>If enabled, use this link to provide a public preview link. This will allow someone to view "Draft" status posts without a login or account.</i></p>';
 	}
 
 }

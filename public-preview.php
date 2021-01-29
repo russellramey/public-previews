@@ -14,7 +14,7 @@
 	Check the posts for our parameters and return accordingly
 ************************************************************************************/
 add_filter( 'posts_results', 'wp_public_previews', null, 2 );
-function wp_public_previews( $posts, &$query ) {
+function wp_public_previews( $posts, $query ) {
 
 	// If more than 1 post is returned, return normally
 	// else get post attributes as variables
@@ -73,7 +73,7 @@ function wp_public_previews( $posts, &$query ) {
 
 			// Remove filter
 		    add_filter( 'the_posts', 'wp_public_previews_active', null, 2 );
-			function wp_public_previews_active( $posts, &$query ) {
+			function wp_public_previews_active( $posts, $query ) {
 			    /* do only once */
 			    remove_filter( 'the_posts', 'wp_public_previews_active', null, 2 );
 			    return $query->_public_preview_cache;
